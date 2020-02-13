@@ -1,16 +1,17 @@
 const express = require('express');
 
 const Users = require('./userDb');
+const Posts = require('../posts/postDb');
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
+router.post('/', validateUser, (req, res) => {
   // do your magic!
   const newUser = req.body;
   console.log(newUser)
-  if (!newUser.name) {
-    res.status(401).json({ errorMessage: "You must enter a user name" })
-  } else {
+  // if (!newUser.name) {
+  //   res.status(401).json({ errorMessage: "You must enter a user name" })
+  // } else {
     
     Users.get()
     .then(users => {
@@ -30,7 +31,7 @@ router.post('/', (req, res) => {
     })
     .catch(err => 
       res.status(500).json({ error: "could not retreive users from database"}))
-  }
+  // }
 
 
 
@@ -43,6 +44,11 @@ router.post('/', (req, res) => {
 
 router.post('/:id/posts', (req, res) => {
   // do your magic!
+
+
+
+  Posts.insert(req.body);
+
 });
 
 router.get('/', (req, res) => {
@@ -58,16 +64,31 @@ router.get('/', (req, res) => {
 
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', validateUserId, (req, res) => {
   // do your magic!
+  Users.getById(req.params.id)
+  .then(user => {
+      res.status(200).json({ user });
+  })
+  .catch( err => {
+    res.status(500).json({ error: "There was an error grabbing the user by that id" })
+  })
 });
 
 router.get('/:id/posts', (req, res) => {
   // do your magic!
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', validateUserId, (req, res) => {
   // do your magic!
+  console.log(req.params.id)
+  Users.remove(req.params.id)
+  .then(deleted => {
+    res.status(200).json(deleted)
+  })
+  .catch(err => {
+    res.status(500).json({ error: "Could not delete selected user for that ID" })
+  })
 });
 
 router.put('/:id', (req, res) => {
@@ -76,16 +97,50 @@ router.put('/:id', (req, res) => {
 
 //custom middleware
 
-function validateUserId(req, res, next) {
-  // do your magic!
-}
+// function validateUserId(req, res, next) {
+//   // do your magic!
+// }
 
-function validateUser(req, res, next) {
-  // do your magic!
-}
+// function validateUser(req, res, next) {
+//   // do your magic!
+// }
 
-function validatePost(req, res, next) {
-  // do your magic!
-}
+// function validatePost(req, res, next) {
+//   // do your magic!
+// }
 
 module.exports = router;
+
+function greeter(req, res, next) { 
+  console.log('Greetings!!!');
+  next();
+}
+
+
+  
+  function validateUserId (req, res, next) { 
+    Users.getById(req.params.id)
+    .then(user => {
+      if(!user) {
+        res.status(404).json({ message: "invalid user id" })
+      } else {
+        req.user = user;
+        next();
+      }
+  
+    })
+    .catch( err => {
+      res.status(500).json({ error: "There was an error grabbing the user by that id" })
+    })
+  
+    next();
+  }
+
+  function validateUser (req, res, next) { 
+    if(!req.body){
+      res.status(400).json({ message: "missing user data" })
+    } else if (!req.body.name) {
+      res.status(400).json({ message: "missing required name field" })
+    }
+    next();
+  }
