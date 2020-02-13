@@ -28,7 +28,15 @@ router.post('/', validatePost, (req, res) => {
 });
 
 router.get('/:id', (req, res) => {
-  // do your magic!
+  console.log(req.params.id)
+  Posts.getUserPosts(req.params.id)
+  .then(userPosts => {
+    res.status(200).json(userPosts)
+  })
+  .catch(err => {
+    res.status(500).json({ error: "Could not retreive posts for that user" });
+  })
+
 });
 
 router.delete('/:id', (req, res) => {

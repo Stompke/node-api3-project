@@ -42,10 +42,8 @@ router.post('/', validateUser, (req, res) => {
   // }
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validateUserId, (req, res) => {
   // do your magic!
-
-
 
   Posts.insert(req.body);
 
@@ -79,42 +77,36 @@ router.get('/:id/posts', (req, res) => {
   // do your magic!
 });
 
-router.delete('/:id', validateUserId, (req, res) => {
+router.delete('/:id', validateUserId,  (req, res) => {
   // do your magic!
   console.log(req.params.id)
+  // res.status(200).json(req.params.id)
   Users.remove(req.params.id)
   .then(deleted => {
-    res.status(200).json(deleted)
+    res.status(200).json({ message: deleted})
   })
   .catch(err => {
     res.status(500).json({ error: "Could not delete selected user for that ID" })
   })
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateUserId, (req, res) => {
   // do your magic!
+  console.log(req.body)
+  Users.update(req.params.id, req.body)
+  .then(updated => {
+    res.status(200).json(updated)
+  })
+  .catch(err => {
+    res.status(500).json({ error: "The selected user could not be updated. :(" })
+  })
 });
 
 //custom middleware
 
-// function validateUserId(req, res, next) {
-//   // do your magic!
-// }
 
-// function validateUser(req, res, next) {
-//   // do your magic!
-// }
-
-// function validatePost(req, res, next) {
-//   // do your magic!
-// }
 
 module.exports = router;
-
-function greeter(req, res, next) { 
-  console.log('Greetings!!!');
-  next();
-}
 
 
   
@@ -124,7 +116,8 @@ function greeter(req, res, next) {
       if(!user) {
         res.status(404).json({ message: "invalid user id" })
       } else {
-        req.user = user;
+        // req.user = req.user;
+        console.log('valid user id');
         next();
       }
   
@@ -133,7 +126,7 @@ function greeter(req, res, next) {
       res.status(500).json({ error: "There was an error grabbing the user by that id" })
     })
   
-    next();
+
   }
 
   function validateUser (req, res, next) { 
